@@ -42,23 +42,46 @@ function pintarCarrito(carrito) {
 }
 
 async function añadir(producto, $boton) {
-  // TODO 5: añade el producto al carrito llamando a una herramienta del servidor.
-  //   const resultado = await app.callServerTool({
-  //     name: 'anadir_al_carrito',
-  //     arguments: { id: producto.id, cantidad: 1 },
-  //   })
-  //   - Pinta el carrito con pintarCarrito(resultado.structuredContent)
-  //   - Desactiva el botón mientras dura la llamada y muestra los errores en $estado
-  //
-  // TODO 6 (extra): cuéntale al modelo lo que ha hecho el usuario.
-  //   await app.updateModelContext({ content: [{ type: 'text', text: '…' }] })
-  $estado.textContent = 'TODO 5: todavía no se puede añadir al carrito.';
+    $boton.disabled = true;
+    $estado.textContent = '';
+
+    try {
+        const resultado = await app.callServerTool({
+            name: 'anadir_al_carrito',
+            arguments: { id: producto.id, cantidad: 1 },
+        });
+
+        if (resultado.isError) {
+            $estado.textContent = resultado.content?.[0]?.text ?? 'No se pudo añadir el producto.';
+            return;
+        }
+
+        pintarCarrito(resultado.structuredContent);
+
+        $estado.textContent = `${producto.nombre} añadido al carrito.`;
+
+        const { unidades, total } = resultado.structuredContent;
+        await app.updateModelContext({
+            content: [
+                {
+                    type: 'text',
+                    text: `El usuario ha añadido "${producto.nombre}" al carrito desde la interfaz. Ahora hay ${unidades} unidades (${total} €).`,
+                },
+            ],
+        });
+
+    } catch (error) {
+        $estado.textContent = `Error: ${error.message}`;
+    } finally {
+        $boton.disabled = false;
+    }
 }
 
-// TODO 4: recibe el resultado de la herramienta que ha abierto esta vista.
-//   app.addEventListener('toolresult', (resultado) => { … })
-//   - Los datos están en resultado.structuredContent: { productos, carrito }
-//   - Usa pintarProductos(productos) y pintarCarrito(carrito)
+app.addEventListener('toolresult', (resultado) => {
+    const {productos, carrito} = resultado.structuredContent ?? {};
+    if (productos) pintarProductos(productos);
+    if (carrito) pintarCarrito(carrito);
+});
 
 // El botón del carrito le pide al asistente que continúe la conversación
 $carrito.addEventListener('click', () => {
