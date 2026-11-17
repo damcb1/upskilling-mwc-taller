@@ -52,13 +52,38 @@ async function añadir(producto, $boton) {
   //
   // TODO 6 (extra): cuéntale al modelo lo que ha hecho el usuario.
   //   await app.updateModelContext({ content: [{ type: 'text', text: '…' }] })
-  $estado.textContent = 'TODO 5: todavía no se puede añadir al carrito.';
+    $boton.disabled = true;
+    $estado.textContent = '';
+
+    try {
+        const resultado = await app.callServerTool({
+            name: 'anadir_al_carrito',
+            arguments: { id: producto.id, cantidad: 1 },
+        });
+
+        if (resultado.isError) {
+            $estado.textContent = resultado.content?.[0]?.text ?? 'No se pudo añadir el producto.';
+            return;
+        }
+
+        pintarCarrito(resultado.structuredContent);
+    } catch (error) {
+        $estado.textContent = `Error: ${error.message}`;
+    } finally {
+        $boton.disabled = false;
+    }
 }
 
 // TODO 4: recibe el resultado de la herramienta que ha abierto esta vista.
 //   app.addEventListener('toolresult', (resultado) => { … })
 //   - Los datos están en resultado.structuredContent: { productos, carrito }
 //   - Usa pintarProductos(productos) y pintarCarrito(carrito)
+
+app.addEventListener('toolresult', (resultado) => {
+    const {productos, carrito} = resultado.structuredContent ?? {};
+    if (productos) pintarProductos(productos);
+    if (carrito) pintarCarrito(carrito);
+});
 
 // El botón del carrito le pide al asistente que continúe la conversación
 $carrito.addEventListener('click', () => {
