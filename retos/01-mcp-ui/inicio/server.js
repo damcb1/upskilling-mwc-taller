@@ -20,13 +20,6 @@ export function crearServidor() {
     const server = new McpServer({name: 'tienda', version: '1.0.0'});
 
     // Esta herramienta ya funciona, pero solo devuelve texto.
-    //
-    // TODO 1: conviértela en una herramienta con interfaz.
-    //   - Cambia `server.registerTool('buscar_productos', …)` por
-    //     `registerAppTool(server, 'buscar_productos', …)`
-    //   - Añade a la configuración:  _meta: { ui: { resourceUri: VISTA_CATALOGO } }
-    //   - Devuelve también los datos para la vista:
-    //     structuredContent: { productos, carrito: verCarrito() }
     registerAppTool(
         server,
         'buscar_productos',
@@ -57,11 +50,6 @@ export function crearServidor() {
         },
     );
 
-    // TODO 2: registra el recurso con el HTML de la interfaz.
-    //   registerAppResource(server, nombre, VISTA_CATALOGO, { description }, async () => ({
-    //     contents: [{ uri: VISTA_CATALOGO, mimeType: RESOURCE_MIME_TYPE, text: await crearVista() }],
-    //   }))
-
     registerAppResource(
         server,
         'Catálogo de la tienda',
@@ -77,11 +65,6 @@ export function crearServidor() {
             ],
         }),
     );
-
-    // TODO 3: registra la herramienta `anadir_al_carrito` (id, cantidad).
-    //   - Usa añadirAlCarrito(id, cantidad), que devuelve el carrito actualizado
-    //   - Devuelve el carrito en `structuredContent` para que la vista pueda pintarlo
-    //   - Si el producto no existe, devuelve { isError: true, content: [...] }
 
     server.registerTool(
         'anadir_al_carrito',
@@ -113,7 +96,7 @@ export function crearServidor() {
             }
         },
     );
-    
+
     server.registerTool(
     'ver_carrito',
     {
